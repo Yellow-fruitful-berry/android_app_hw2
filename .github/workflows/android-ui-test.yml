@@ -14,18 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up JDK
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17' # Use the appropriate version for your project
 
-      # Step 3: Cache Gradle dependencies
       - name: Cache Gradle dependencies
         uses: actions/cache@v3
         with:
@@ -38,26 +35,23 @@ jobs:
         uses: android-actions/setup-android@v2
         with:
           api-level: 34
-          build-tools: 34.0.2
+          build-tools: 34.0.3
           target: android-33
-          ndk: 25.2.9519653
 
-      # Step 5: Install required system image
-      - name: Install system image
+      - name: Install emulator and system images
         run: |
-          sdkmanager --install "system-images;android-30;google_apis;x86"
+          sdkmanager --install "emulator" "system-images;android-30;google_apis;x86"
           sdkmanager --list
 
-      # Step 6: Start an Emulator
       - name: Start Emulator
         run: |
           echo "Setting up AVD..."
-          avdmanager create avd -n test -k "system-images;android-30;google_apis;x86" --device "pixel_3a" || true
-          nohup emulator -avd test -no-window -no-audio -gpu swiftshader_indirect &
+          avdmanager create avd -n test -k "system-images;android-30;google_apis;x86" --device "pixel_6a" || true
+          $ANDROID_HOME/emulator/emulator -avd test -no-window -no-audio -gpu swiftshader_indirect &
           adb wait-for-device
           adb shell input keyevent 82
-        timeout-minutes: 10
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
 
-      # Step 7: Run UI tests
       - name: Run UI tests
         run: ./gradlew connectedAndroidTest
