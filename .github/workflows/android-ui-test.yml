@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - develop
   pull_request:
     branches:
       - main
-      - develop
 
 jobs:
   ui-tests:
@@ -16,15 +14,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Step 2: Set up JDK
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '17' # Use the appropriate version for your project
 
+      # Step 3: Cache Gradle dependencies
       - name: Cache Gradle dependencies
         uses: actions/cache@v3
         with:
@@ -33,6 +34,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      # Step 4: Set up Android SDK
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
         with:
@@ -40,5 +42,16 @@ jobs:
           build-tools: 30.0.3
           target: android-30
 
+      # Step 5: Start an Emulator
+      - name: Start Emulator
+        run: |
+          echo "Setting up AVD..."
+          avdmanager create avd -n test -k "system-images;android-30;google_apis;x86" --device "pixel_3a"
+          nohup emulator -avd test -no-window -no-audio -gpu swiftshader_indirect &
+          adb wait-for-device
+          adb shell input keyevent 82
+        timeout-minutes: 10
+
+      # Step 6: Run UI tests
       - name: Run UI tests
         run: ./gradlew connectedAndroidTest
