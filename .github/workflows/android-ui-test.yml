@@ -1,4 +1,4 @@
-name: Android UI Tests
+name: Detekt Analysis
 
 on:
   push:
@@ -9,52 +9,30 @@ on:
       - main
 
 jobs:
-  ui-tests:
-    name: Run UI Tests
+  detekt:
+    name: Run Detekt
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
-      - name: Cache Gradle dependencies
+      - name: Cache Detekt
         uses: actions/cache@v3
         with:
-          path: ~/.gradle/caches
+          path: ~/.gradle
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v2
-        with:
-          api-level: 35
-          build-tools: 35.0.0
-          target: android-35
+      - name: Install Detekt Dependencies
+        run: ./gradlew dependencies
 
-      - name: Install Emulator and System Image
-        run: |
-          sdkmanager --install "system-images;android-35;google_apis;x86_64" "emulator"
-          sdkmanager --list
-
-      - name: Create and Start Emulator
-        run: |
-          echo "Creating AVD..."
-          avdmanager create avd -n medium_phone -k "system-images;android-35;google_apis;x86_64" --device "Nexus 5" --force
-          echo "Starting Emulator..."
-          $ANDROID_HOME/emulator/emulator -list-avds
-          $ANDROID_HOME/emulator/emulator -avd medium_phone -no-window -no-audio -gpu swiftshader_indirect &
-          adb wait-for-device
-          adb shell input keyevent 82
-        env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
-        timeout-minutes: 1
-
-      - name: Run UI Tests
-        run: ./gradlew connectedAndroidTest
+      - name: Run Detekt
+        run: ./gradlew detekt
