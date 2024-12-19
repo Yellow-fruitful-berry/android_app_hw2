@@ -36,6 +36,7 @@ android {
 }
 
 dependencies {
+    implementation("com.github.bumptech.glide:glide:4.15.1")
     implementation("com.google.zxing:core:3.4.1")
     implementation(libs.core)
     implementation(libs.androidx.core.ktx)
@@ -48,4 +49,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.rules)
 }
