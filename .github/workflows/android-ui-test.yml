@@ -48,6 +48,7 @@ jobs:
           echo "Creating AVD..."
           avdmanager create avd -n medium_phone -k "system-images;android-35;google_apis;x86_64" --device "Nexus 5" --force
           echo "Starting Emulator..."
+          $ANDROID_HOME/emulator/emulator -list-avds
           $ANDROID_HOME/emulator/emulator -avd Medium_Phone_API_35 -no-window -no-audio -gpu swiftshader_indirect &
           adb wait-for-device
           adb shell input keyevent 82
