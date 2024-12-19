@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: '17' # Use the appropriate version for your project
+          java-version: '17'
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v3
@@ -34,24 +34,26 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
         with:
-          api-level: 34
-          build-tools: 34.0.3
-          target: android-33
+          api-level: 35
+          build-tools: 35.0.0
+          target: android-35
 
-      - name: Install emulator and system images
+      - name: Install Emulator and System Image
         run: |
-          sdkmanager --install "emulator" "system-images;android-30;google_apis;x86"
+          sdkmanager --install "system-images;android-35;google_apis;x86_64" "emulator"
           sdkmanager --list
 
-      - name: Start Emulator
+      - name: Create and Start Emulator
         run: |
-          echo "Setting up AVD..."
-          avdmanager create avd -n test -k "system-images;android-30;google_apis;x86" --device "pixel_3a" || true
-          $ANDROID_HOME/emulator/emulator -avd test -no-window -no-audio -gpu swiftshader_indirect &
+          echo "Creating AVD..."
+          avdmanager create avd -n medium_phone -k "system-images;android-35;google_apis;x86_64" --device "Nexus 5" --force
+          echo "Starting Emulator..."
+          $ANDROID_HOME/emulator/emulator -avd medium_phone -no-window -no-audio -gpu swiftshader_indirect &
           adb wait-for-device
           adb shell input keyevent 82
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
+        timeout-minutes: 1
 
-      - name: Run UI tests
+      - name: Run UI Tests
         run: ./gradlew connectedAndroidTest
